@@ -22,14 +22,18 @@ class MarkdownTextInput extends StatefulWidget {
   /// The maximum of lines that can be display in the input
   final int? maxLines;
 
+  /// The minimum of lines that can be display in the input "edited"
+  final int? minLines;
+
+  //Colors
+  final Color greyBorderColor = Color.fromARGB(255, 238, 238, 238);
+  final Color mainOrange = Color(0xffEE7600);
+
   /// List of action the component can handle
   final List<MarkdownType> actions;
 
   /// Optional controller to manage the input
   final TextEditingController? controller;
-
-  /// Overrides input text style
-  final TextStyle? textStyle;
 
   /// Constructor for [MarkdownTextInput]
   MarkdownTextInput(
@@ -38,6 +42,7 @@ class MarkdownTextInput extends StatefulWidget {
     this.label = '',
     this.validators,
     this.textDirection = TextDirection.ltr,
+    this.minLines = 1,
     this.maxLines = 10,
     this.actions = const [
       MarkdownType.bold,
@@ -46,12 +51,12 @@ class MarkdownTextInput extends StatefulWidget {
       MarkdownType.link,
       MarkdownType.list
     ],
-    this.textStyle,
     this.controller,
   });
 
   @override
-  _MarkdownTextInputState createState() => _MarkdownTextInputState(controller ?? TextEditingController());
+  _MarkdownTextInputState createState() =>
+      _MarkdownTextInputState(controller ?? TextEditingController());
 }
 
 class _MarkdownTextInputState extends State<MarkdownTextInput> {
@@ -69,11 +74,13 @@ class _MarkdownTextInputState extends State<MarkdownTextInput> {
         type, _controller.text, textSelection.baseOffset, textSelection.extentOffset,
         titleSize: titleSize);
 
-    _controller.value = _controller.value
-        .copyWith(text: result.data, selection: TextSelection.collapsed(offset: basePosition + result.cursorIndex));
+    _controller.value = _controller.value.copyWith(
+        text: result.data,
+        selection: TextSelection.collapsed(offset: basePosition + result.cursorIndex));
 
     if (noTextSelected) {
-      _controller.selection = TextSelection.collapsed(offset: _controller.selection.end - result.replaceCursorIndex);
+      _controller.selection = TextSelection.collapsed(
+          offset: _controller.selection.end - result.replaceCursorIndex);
       focusNode.requestFocus();
     }
   }
@@ -99,9 +106,7 @@ class _MarkdownTextInputState extends State<MarkdownTextInput> {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        border: Border.all(color: Theme.of(context).colorScheme.secondary, width: 2),
-        borderRadius: const BorderRadius.all(Radius.circular(10)),
+        borderRadius: BorderRadius.all(Radius.circular(10)),
       ),
       child: Column(
         children: <Widget>[
@@ -109,20 +114,24 @@ class _MarkdownTextInputState extends State<MarkdownTextInput> {
             focusNode: focusNode,
             textInputAction: TextInputAction.newline,
             maxLines: widget.maxLines,
+            minLines: widget.minLines,
             controller: _controller,
             textCapitalization: TextCapitalization.sentences,
-            validator: widget.validators != null
-                ? (value) => widget.validators!(value)
-                : null,
-            style: widget.textStyle ?? Theme.of(context).textTheme.bodyText1,
-            cursorColor: Theme.of(context).primaryColor,
+            validator:
+                widget.validators != null ? (value) => widget.validators!(value) : null,
+            style: Theme.of(context).textTheme.bodyText1,
             textDirection: widget.textDirection,
             decoration: InputDecoration(
-              enabledBorder:
-                  UnderlineInputBorder(borderSide: BorderSide(color: Theme.of(context).colorScheme.secondary)),
-              focusedBorder:
-                  UnderlineInputBorder(borderSide: BorderSide(color: Theme.of(context).colorScheme.secondary)),
+              focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: widget.mainOrange),
+                  borderRadius: BorderRadius.all(Radius.circular(10))),
               hintText: widget.label,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10.0),
+                borderSide: BorderSide(
+                  color: widget.greyBorderColor,
+                ),
+              ),
               hintStyle: const TextStyle(color: Color.fromRGBO(63, 61, 86, 0.5)),
               contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
             ),
@@ -131,7 +140,8 @@ class _MarkdownTextInputState extends State<MarkdownTextInput> {
             height: 44,
             child: Material(
               color: Theme.of(context).cardColor,
-              borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10)),
+              borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10)),
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 children: widget.actions.map((type) {
@@ -145,7 +155,8 @@ class _MarkdownTextInputState extends State<MarkdownTextInput> {
                                   padding: EdgeInsets.all(10),
                                   child: Text(
                                     'H#',
-                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                                    style: TextStyle(
+                                        fontSize: 16, fontWeight: FontWeight.w700),
                                   ),
                                 ),
                               ),
@@ -157,12 +168,15 @@ class _MarkdownTextInputState extends State<MarkdownTextInput> {
                                   for (int i = 1; i <= 6; i++)
                                     InkWell(
                                       key: Key('H${i}_button'),
-                                      onTap: () => onTap(MarkdownType.title, titleSize: i),
+                                      onTap: () =>
+                                          onTap(MarkdownType.title, titleSize: i),
                                       child: Padding(
                                         padding: const EdgeInsets.all(10),
                                         child: Text(
                                           'H$i',
-                                          style: TextStyle(fontSize: (18 - i).toDouble(), fontWeight: FontWeight.w700),
+                                          style: TextStyle(
+                                              fontSize: (18 - i).toDouble(),
+                                              fontWeight: FontWeight.w700),
                                         ),
                                       ),
                                     ),
